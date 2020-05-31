@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { Form, Item, Input, Text, Button, Label, Spinner } from "native-base";
 import axios from "axios";
+import * as RootNavigation from "./../navigation/RootNavigation";
+import { CommonActions } from "@react-navigation/native";
 import * as Font from "expo-font";
 
 export default class LoginScreen extends Component {
@@ -63,10 +65,17 @@ export default class LoginScreen extends Component {
         .then(function (response) {
           that.setState({ isLoggin: false });
           that.setState({ buttonState: false });
+
+          RootNavigation.navigate("Home");
+          // RootNavigation.resetTo({
+          //   title: "Home"
+          // });
           console.log(response);
         })
         .catch(function (error) {
-          that.setState({ emailState: "These credentials do not match our records." });
+          that.setState({
+            emailState: "These credentials do not match our records.",
+          });
           that.setState({ isLoggin: false });
           that.setState({ buttonState: false });
         });
@@ -77,7 +86,7 @@ export default class LoginScreen extends Component {
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS == "ios" ? "padding" : "height"}
-        style={{flex: 1}}
+        style={{ flex: 1 }}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={styles.container}>

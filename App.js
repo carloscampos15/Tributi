@@ -1,11 +1,16 @@
-import React from 'react';
-import { AppLoading } from 'expo';
-import { Container, Text } from 'native-base';
-import * as Font from 'expo-font';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { AppLoading } from "expo";
+import { Button } from "react-native";
+import * as Font from "expo-font";
+import { Ionicons } from "@expo/vector-icons";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
 
-import LoginScreen from './screens/LoginScreen'
+import { navigationRef } from "./navigation/RootNavigation";
+import LoginScreen from "./screens/LoginScreen";
+import HomeScreen from "./screens/HomeScreen";
 
+const Stack = createStackNavigator();
 
 export default class App extends React.Component {
   constructor(props) {
@@ -17,8 +22,8 @@ export default class App extends React.Component {
 
   async componentDidMount() {
     await Font.loadAsync({
-      Roboto: require('native-base/Fonts/Roboto.ttf'),
-      Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf'),
+      Roboto: require("native-base/Fonts/Roboto.ttf"),
+      Roboto_medium: require("native-base/Fonts/Roboto_medium.ttf"),
       ...Ionicons.font,
     });
     this.setState({ isReady: true });
@@ -30,7 +35,23 @@ export default class App extends React.Component {
     }
 
     return (
-      <LoginScreen/>
+      <NavigationContainer ref={navigationRef}>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{
+              title: "",
+              headerLeft: null
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
     );
   }
 }
