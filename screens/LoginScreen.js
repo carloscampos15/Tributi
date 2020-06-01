@@ -6,56 +6,60 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   KeyboardAvoidingView,
+  Dimensions,
 } from "react-native";
 import { Form, Item, Input, Text, Button, Label, Spinner } from "native-base";
 import axios from "axios";
-import * as RootNavigation from "./../navigation/RootNavigation";
-import { CommonActions } from "@react-navigation/native";
-import * as Font from "expo-font";
+import { AuthContext } from "./../context/AuthContext";
+import { AsyncStorage } from "react-native";
 
-export default class LoginScreen extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      email: "",
-      password: "",
-      emailState: "",
-      passwordState: "",
-      isLoggin: false,
-      buttonState: false,
-    };
-  }
+export default function LoginScreen() {
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [emailState, setEmailState] = React.useState("");
+  const [passwordState, setPasswordState] = React.useState("");
+  const [isLoggin, setIsLoggin] = React.useState(false);
+  const [buttonState, setButtonState] = React.useState(false);
 
-  validateForm = () => {
+  const { signIn } = React.useContext(AuthContext);
+
+  var validateForm = () => {
     var band = true;
     var emailRegex = /^[-\w.%+]{1,64}@(?:[A-Z0-9-]{1,63}\.){1,125}[A-Z]{2,63}$/i;
-    if (this.state.email == "") {
+    if (email == "") {
       band = false;
-      this.setState({ emailState: "Email field can not be empty" });
+      setEmailState("Email field can not be empty");
     } else {
-      if (emailRegex.test(this.state.email)) {
-        this.setState({ emailState: "" });
+      if (emailRegex.test(email)) {
+        setEmailState("");
       } else {
         band = false;
-        this.setState({ emailState: "Invalid email" });
+        setEmailState("Invalid email");
       }
     }
-    if (this.state.password == "") {
+    if (password == "") {
       band = false;
-      this.setState({ passwordState: "Password field can not be empty" });
+      setPasswordState("Password field can not be empty");
     } else {
-      this.setState({ passwordState: "" });
+      setPasswordState("");
     }
     return band;
   };
 
-  onSubmit = async () => {
-    var that = this;
-    if (that.validateForm()) {
+  var _storeData = async (user, token) => {
+    try {
+      await AsyncStorage.setItem("user", user);
+      await AsyncStorage.setItem("userToken", token);
+    } catch (error) {
+      console.log("local storage: " + error);
+    }
+  };
+
+  var onSubmit = async () => {
+    if (validateForm()) {
       Keyboard.dismiss();
-      that.setState({ isLoggin: true });
-      that.setState({ buttonState: true });
-      const { email, password } = that.state;
+      setIsLoggin(true);
+      setButtonState(true);
 
       axios
         .post("http://192.168.100.92:3999/api/auth/login", {
@@ -63,86 +67,82 @@ export default class LoginScreen extends Component {
           password: password,
         })
         .then(function (response) {
-          that.setState({ isLoggin: false });
-          that.setState({ buttonState: false });
-
-          RootNavigation.navigate("Home");
-          // RootNavigation.resetTo({
-          //   title: "Home"
-          // });
-          console.log(response);
+          setIsLoggin(false);
+          setButtonState(false);
+          _storeData(
+            JSON.stringify(response.data.user),
+            JSON.stringify(response.data.token)
+          );
+          signIn();
         })
         .catch(function (error) {
-          that.setState({
-            emailState: "These credentials do not match our records.",
-          });
-          that.setState({ isLoggin: false });
-          that.setState({ buttonState: false });
+          console.log("axios: " + error);
+          setEmailState("These credentials do not match our records.");
+          setIsLoggin(false);
+          setButtonState(false);
         });
     }
   };
 
-  render() {
-    return (
-      <KeyboardAvoidingView
-        behavior={Platform.OS == "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={styles.container}>
-            <View style={styles.top}></View>
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS == "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.container}>
+          <View style={styles.top}></View>
 
-            <View style={styles.middle}>
+          <View style={styles.middle}>
+            {Dimensions.get("window").height > 700 && (
               <Image
                 style={styles.image}
                 source={require("./../assets/icon.png")}
               />
+            )}
 
-              <View style={styles.formArea}>
-                <Text style={[styles.textContainer, styles.signin]}>
-                  Tributi
-                </Text>
-                <Form>
-                  <Item style={styles.formItems} floatingLabel>
-                    <Label>Email</Label>
-                    <Input
-                      onChangeText={(email) => this.setState({ email })}
-                      value={this.state.email}
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                    />
-                  </Item>
-                  <Text style={styles.errors}>{this.state.emailState}</Text>
+            <View style={styles.formArea}>
+              <Text style={[styles.textContainer, styles.signin]}>Tributi</Text>
+              <Form>
+                <Item style={styles.formItems} floatingLabel>
+                  <Label>Email</Label>
+                  <Input
+                    onChangeText={setEmail}
+                    value={email}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                  />
+                </Item>
+                <Text style={styles.errors}>{emailState}</Text>
 
-                  <Item style={styles.formItems} floatingLabel>
-                    <Label>Password</Label>
-                    <Input
-                      onChangeText={(password) => this.setState({ password })}
-                      value={this.state.password}
-                      secureTextEntry={true}
-                    />
-                  </Item>
-                  <Text style={styles.errors}>{this.state.passwordState}</Text>
+                <Item style={styles.formItems} floatingLabel>
+                  <Label>Password</Label>
+                  <Input
+                    onChangeText={setPassword}
+                    value={password}
+                    secureTextEntry={true}
+                  />
+                </Item>
+                <Text style={styles.errors}>{passwordState}</Text>
 
-                  <View style={styles.Button}>
-                    <Button
-                      block
-                      warning
-                      onPress={this.onSubmit}
-                      disabled={this.state.buttonState}
-                    >
-                      {(!this.state.isLoggin && <Text>Iniciar Sesión</Text>) ||
-                        (this.state.isLoggin && <Spinner color="white" />)}
-                    </Button>
-                  </View>
-                </Form>
-              </View>
+                <View style={styles.Button}>
+                  <Button
+                    block
+                    warning
+                    onPress={onSubmit}
+                    disabled={buttonState}
+                  >
+                    {(!isLoggin && <Text>Iniciar Sesión</Text>) ||
+                      (isLoggin && <Spinner color="white" />)}
+                  </Button>
+                </View>
+              </Form>
             </View>
           </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    );
-  }
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+  );
 }
 
 const styles = StyleSheet.create({
