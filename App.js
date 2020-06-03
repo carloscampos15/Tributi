@@ -12,6 +12,7 @@ import LoginScreen from "./screens/LoginScreen";
 import HomeScreen from "./screens/HomeScreen";
 import SettingScreen from "./screens/SettingScreen";
 import MapScreen from "./screens/MapScreen";
+import SearchScreen from "./screens/SearchScreen";
 
 const AuthStack = createStackNavigator();
 const Tab = createMaterialBottomTabNavigator();
@@ -30,27 +31,33 @@ const TabsScreen = () => (
   <Tab.Navigator
     barStyle={{ backgroundColor: "white" }}
     labelStyle={{ fontSize: 12 }}
+    activeColor="#e0a627"
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
         let iconName;
+        let iconType = "MaterialCommunityIcons";
         if (route.name === "Home") {
           iconName = focused ? "home" : "home-outline";
         } else if (route.name === "Settings") {
           iconName = focused ? "settings" : "settings-outline";
-        } else if(route.name === "Map") {
+        } else if (route.name === "Map") {
           iconName = focused ? "map-marker" : "map-marker-outline";
+        } else if (route.name === "Search") {
+          iconType = "Ionicons";
+          iconName = focused ? "md-search" : "ios-search";
         }
         return (
           <Icon
-            type="MaterialCommunityIcons"
+            type={iconType}
             name={iconName}
-            style={{ color: "#3B3E40", fontSize: 24 }}
+            style={{ color: "#e0a627", fontSize: 24 }}
           />
         );
       },
     })}
   >
     <Tab.Screen name="Home" component={HomeScreen} />
+    <Tab.Screen name="Search" component={SearchScreen} />
     <Tab.Screen name="Map" component={MapScreen} />
     <Tab.Screen name="Settings" component={SettingScreen} />
   </Tab.Navigator>
@@ -64,7 +71,7 @@ const RootStackScreen = ({ userToken }) => (
         name="App"
         component={TabsScreen}
         options={{
-          animationEnabled: false,
+          animationEnabled: true,
         }}
       />
     ) : (
@@ -72,7 +79,7 @@ const RootStackScreen = ({ userToken }) => (
         name="Auth"
         component={AuthStackScreen}
         options={{
-          animationEnabled: false,
+          animationEnabled: true,
         }}
       />
     )}
@@ -92,6 +99,15 @@ export default function App() {
         setUser(JSON.parse(user));
         setUserToken(JSON.parse(userToken));
       }
+    } catch (error) {
+      console.log("local storage: " + error);
+    }
+  };
+
+  var _removeData = async () => {
+    try {
+      await AsyncStorage.removeItem("user");
+      await AsyncStorage.removeItem("userToken");
     } catch (error) {
       console.log("local storage: " + error);
     }
@@ -120,7 +136,9 @@ export default function App() {
         _retrieveData();
       },
       signOut: () => {
+        _removeData();
         setUserToken(null);
+        setUser(null);
       },
     };
   }, []);
@@ -132,7 +150,7 @@ export default function App() {
   return (
     <AuthContext.Provider value={authContext}>
       <NavigationContainer>
-        <RootStackScreen userToken={userToken} />
+        <RootStackScreen userToken={userToken} properties={{ user: user }} />
       </NavigationContainer>
     </AuthContext.Provider>
   );

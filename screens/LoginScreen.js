@@ -7,6 +7,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Dimensions,
+  StatusBar
 } from "react-native";
 import { Form, Item, Input, Text, Button, Label, Spinner } from "native-base";
 import axios from "axios";
@@ -91,6 +92,7 @@ export default function LoginScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.container}>
+        <StatusBar backgroundColor="#e0a627" barStyle="light-content" />
           <View style={styles.top}></View>
 
           <View style={styles.middle}>

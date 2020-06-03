@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, StatusBar } from "react-native";
 
 export default class HomeScreen extends Component {
   constructor(props) {
@@ -10,6 +10,7 @@ export default class HomeScreen extends Component {
   render() {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <StatusBar backgroundColor="#f2f2f2" barStyle="dark-content" />
         <Text>Home Screen</Text>
       </View>
     );
